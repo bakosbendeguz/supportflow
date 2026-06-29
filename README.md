@@ -43,10 +43,10 @@ The goal is to build a medior-level fullstack TypeScript application with a sepa
 
 ## Demo Users
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@example.com | admin123 |
-| Agent | agent@example.com | agent123 |
+| Role     | Email                | Password    |
+| -------- | -------------------- | ----------- |
+| Admin    | admin@example.com    | admin123    |
+| Agent    | agent@example.com    | agent123    |
 | Customer | customer@example.com | customer123 |
 
 ## Planned Features
@@ -75,3 +75,31 @@ supportflow/
 ├── README.md
 ├── .gitignore
 └── .env.example
+```
+
+## Backend Development
+
+Start PostgreSQL:
+
+```powershell
+docker compose up -d
+```
+
+Start the backend:
+
+```powershell
+cd backend
+npm run start:dev
+```
+
+Health check:
+
+```txt
+http://localhost:3000/health
+```
+
+Swagger API docs:
+
+```txt
+http://localhost:3000/api
+```
