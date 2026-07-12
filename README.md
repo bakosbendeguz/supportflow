@@ -103,3 +103,83 @@ Swagger API docs:
 ```txt
 http://localhost:3000/api
 ```
+
+## Database
+
+Apply migrations:
+
+```powershell
+cd backend
+npx prisma migrate dev
+```
+
+Reset the database and run seed data:
+
+```powershell
+cd backend
+npx prisma migrate reset
+```
+
+Run seed manually:
+
+```powershell
+cd backend
+npx prisma db seed
+```
+
+Open Prisma Studio:
+
+```powershell
+cd backend
+npx prisma studio
+```
+
+### Demo Users
+
+| Role     | Email                | Password    |
+| -------- | -------------------- | ----------- |
+| Admin    | admin@example.com    | admin123    |
+| Agent    | agent@example.com    | agent123    |
+| Customer | customer@example.com | customer123 |
+
+## Authentication
+
+Demo users:
+
+| Role     | Email                | Password    |
+| -------- | -------------------- | ----------- |
+| Admin    | admin@example.com    | admin123    |
+| Agent    | agent@example.com    | agent123    |
+| Customer | customer@example.com | customer123 |
+
+Login:
+
+```powershell
+cd backend
+
+$loginResponse = Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:3000/auth/login `
+  -ContentType "application/json" `
+  -Body '{"email":"admin@example.com","password":"admin123"}'
+
+$token = $loginResponse.accessToken
+```
+
+Get current user:
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri http://localhost:3000/auth/me `
+  -Headers @{ Authorization = "Bearer $token" }
+```
+
+Admin-only RBAC check:
+
+```powershell
+Invoke-RestMethod `
+  -Method Get `
+  -Uri http://localhost:3000/auth/admin-check `
+  -Headers @{ Authorization = "Bearer $token" }
+```
