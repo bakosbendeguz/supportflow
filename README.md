@@ -183,3 +183,68 @@ Invoke-RestMethod `
   -Uri http://localhost:3000/auth/admin-check `
   -Headers @{ Authorization = "Bearer $token" }
 ```
+
+## Ticket API
+
+All ticket endpoints require Bearer token authentication.
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /tickets | List tickets with role-based visibility, filters, pagination and sorting |
+| GET | /tickets/:id | Get ticket detail |
+| POST | /tickets | Create a ticket |
+| PATCH | /tickets/:id | Update ticket fields |
+| PATCH | /tickets/:id/status | Update ticket status and write status history |
+| DELETE | /tickets/:id | Delete a ticket as admin |
+
+### Permission Summary
+
+- ADMIN can see and manage all tickets.
+- AGENT can see assigned and unassigned tickets.
+- CUSTOMER can see only their own tickets.
+- CUSTOMER can create tickets, but priority defaults to MEDIUM.
+- CUSTOMER cannot set or update priority.
+- CUSTOMER cannot assign tickets.
+- ADMIN and AGENT can update priority.
+- ADMIN and AGENT can update status.
+- Only ADMIN can delete tickets.
+
+### Ticket list query parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| search | login | Search title and description |
+| status | OPEN | Filter by status |
+| priority | URGENT | Filter by priority |
+| assigneeId | unassigned | Filter by assignee id or unassigned |
+| includeUnassigned | false | For agents, hide unassigned tickets |
+| page | 1 | Page number |
+| limit | 10 | Page size |
+| sortBy | createdAt | Sort field |
+| sortOrder | desc | Sort direction |
+
+### Example: create customer ticket
+
+```powershell
+$newTicket = Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:3000/tickets `
+  -ContentType "application/json" `
+  -Headers @{ Authorization = "Bearer $customerToken" } `
+  -Body '{"title":"Password reset does not work","description":"I requested a password reset email but I did not receive anything."}'
+```
+
+Customer-created tickets default to MEDIUM priority.
+
+### Example: update status as agent/admin
+
+```powershell
+Invoke-RestMethod `
+  -Method Patch `
+  -Uri "http://localhost:3000/tickets/$ticketId/status" `
+  -ContentType "application/json" `
+  -Headers @{ Authorization = "Bearer $agentToken" } `
+  -Body '{"status":"IN_PROGRESS"}'
+```
