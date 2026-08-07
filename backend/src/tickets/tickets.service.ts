@@ -11,6 +11,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { TicketAccessService } from './ticket-access.service';
 
 const ticketInclude = Prisma.validator<Prisma.TicketInclude>()({
   customer: {
@@ -67,7 +68,10 @@ type TicketWithRelations = Prisma.TicketGetPayload<{
 
 @Injectable()
 export class TicketsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ticketAccessService: TicketAccessService,
+  ) {}
 
   async findAll(query: GetTicketsQueryDto, user: AuthenticatedUser) {
     const page = query.page ?? 1;
@@ -273,7 +277,9 @@ export class TicketsService {
     user: AuthenticatedUser,
   ): Prisma.TicketWhereInput {
     const andConditions: Prisma.TicketWhereInput[] = [
-      this.buildVisibilityWhere(user, query),
+      this.ticketAccessService.buildVisibilityWhere(user, {
+        includeUnassigned: query.includeUnassigned,
+      }),
     ];
 
     if (query.search) {
@@ -318,33 +324,6 @@ export class TicketsService {
     };
   }
 
-  private buildVisibilityWhere(
-    user: AuthenticatedUser,
-    query?: GetTicketsQueryDto,
-  ): Prisma.TicketWhereInput {
-    if (user.role === Role.ADMIN) {
-      return {};
-    }
-
-    if (user.role === Role.AGENT) {
-      const includeUnassigned = query?.includeUnassigned ?? true;
-
-      if (!includeUnassigned) {
-        return {
-          assigneeId: user.id,
-        };
-      }
-
-      return {
-        OR: [{ assigneeId: user.id }, { assigneeId: null }],
-      };
-    }
-
-    return {
-      customerId: user.id,
-    };
-  }
-
   private async findAccessibleTicket(
     id: string,
     user: AuthenticatedUser,
@@ -355,7 +334,7 @@ export class TicketsService {
           {
             id,
           },
-          this.buildVisibilityWhere(user),
+          this.ticketAccessService.buildVisibilityWhere(user),
         ],
       },
       include: ticketInclude,

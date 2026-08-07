@@ -20,11 +20,11 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
-import type { AuthenticatedUser } from 'src/auth/types/authenticated-user.type';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { RolesGuard } from 'src/common/guards/roles.guard';
+import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { GetTicketsQueryDto } from './dto/get-tickets-query.dto';
 import { UpdateTicketStatusDto } from './dto/update-ticket-status.dto';

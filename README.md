@@ -248,3 +248,37 @@ Invoke-RestMethod `
   -Headers @{ Authorization = "Bearer $agentToken" } `
   -Body '{"status":"IN_PROGRESS"}'
 ```
+
+### Comments and Dashboard API
+
+Implemented:
+- GET /tickets/:ticketId/comments
+- POST /tickets/:ticketId/comments
+- GET /dashboard/summary
+
+Comments:
+- Authenticated users can list and create comments only on tickets they are allowed to access.
+- Comment responses include safe author fields only: id, email, name, and role.
+- passwordHash is never returned.
+
+Dashboard:
+- Dashboard statistics reuse the same ticket visibility rules as the Ticket API.
+- ADMIN sees all ticket counts.
+- AGENT sees assigned and unassigned ticket counts.
+- CUSTOMER sees only their own ticket counts.
+
+Cleanup:
+- Extracted TicketAccessService so ticket visibility rules are shared by tickets, comments, and dashboard.
+- Removed duplicated comment author select logic with safeAuthorSelect.
+- Cleaned Swagger descriptions.
+- Standardized imports.
+- Fixed lint warnings.
+
+Verification:
+- npm run lint passed.
+- npm run build passed.
+- Authenticated comment listing works.
+- Authenticated comment creation works.
+- Empty comment validation returns 400.
+- Authenticated dashboard summary works.
+- Missing-token dashboard request returns 401.
