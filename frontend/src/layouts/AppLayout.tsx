@@ -14,12 +14,26 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <p className="text-lg font-semibold text-slate-900">SupportFlow</p>
 
-          <nav>
+          <nav className="flex items-center gap-2">
             <Link
               to="/dashboard"
               className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Dashboard
+            </Link>
+
+            <Link
+              to="/tickets"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Tickets
+            </Link>
+
+            <Link
+              to="/tickets/new"
+              className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              New ticket
             </Link>
           </nav>
 
