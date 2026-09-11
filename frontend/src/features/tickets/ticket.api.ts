@@ -1,5 +1,9 @@
 import { API_BASE_URL, getAuthHeaders } from "../../lib/api";
-import type { TicketListResponse, TicketDetail } from "./ticket.types";
+import type {
+  TicketListResponse,
+  TicketDetail,
+  TicketStatus,
+} from "./ticket.types";
 import type { CreateTicketFormValues } from "./create-ticket.schema";
 
 export async function getTickets(): Promise<TicketListResponse> {
@@ -42,6 +46,27 @@ export async function createTicket(
 
   if (!response.ok) {
     throw new Error("Failed to create ticket.");
+  }
+
+  const data = (await response.json()) as TicketDetail;
+  return data;
+}
+
+export async function updateTicketStatus(
+  ticketId: string,
+  status: TicketStatus,
+): Promise<TicketDetail> {
+  const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update ticket status.");
   }
 
   const data = (await response.json()) as TicketDetail;
