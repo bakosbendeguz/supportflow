@@ -39,22 +39,22 @@ export const router = createBrowserRouter([
   },
 
   {
-    path: "/tickets/:ticketId",
+    path: "/tickets/new",
     element: (
       <ProtectedRoute>
         <AppLayout>
-          <TicketDetailPage />
+          <CreateTicketPage />
         </AppLayout>
       </ProtectedRoute>
     ),
   },
 
   {
-    path: "/tickets/new",
+    path: "/tickets/:ticketId",
     element: (
       <ProtectedRoute>
         <AppLayout>
-          <CreateTicketPage />
+          <TicketDetailPage />
         </AppLayout>
       </ProtectedRoute>
     ),

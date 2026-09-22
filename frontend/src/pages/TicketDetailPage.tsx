@@ -14,6 +14,7 @@ import {
 import { createTicketComment } from "../features/comments/comment.api";
 import type { TicketStatus } from "../features/tickets/ticket.types";
 import { useState, type FormEvent } from "react";
+import { useAuth } from "../features/auth/auth.context";
 
 const ticketStatusOptions: TicketStatus[] = [
   "OPEN",
@@ -32,6 +33,7 @@ export function TicketDetailPage() {
   const ticketId = params.ticketId;
 
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const {
     register,
@@ -53,6 +55,8 @@ export function TicketDetailPage() {
     },
     enabled: Boolean(ticketId),
   });
+
+  const canUpdateStatus = user?.role === "ADMIN" || user?.role === "AGENT";
 
   const commentsQuery = useQuery({
     queryKey: ["ticket-comments", ticketId],
@@ -134,33 +138,38 @@ export function TicketDetailPage() {
 
   return (
     <section>
-      <h1>Ticket detail</h1>
       <h1>{loadedTicket.title}</h1>
       <p>Ticket ID: {ticketId}</p>
       <p>Ticket status: {loadedTicket.status}</p>
-      <form onSubmit={onSubmitStatus}>
-        <label>Status</label>
-        <select
-          defaultValue={loadedTicket.status}
-          onChange={(event) => {
-            setSelectedStatus(event.target.value as TicketStatus);
-          }}
-        >
-          {ticketStatusOptions.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
 
-        <button type="submit" disabled={updateStatusMutation.isPending}>
-          {updateStatusMutation.isPending ? "Updating..." : "Update status"}
-        </button>
+      {canUpdateStatus && (
+        <form onSubmit={onSubmitStatus}>
+          <label htmlFor="ticket-status">Status</label>
+          <select
+            id="ticket-status"
+            defaultValue={loadedTicket.status}
+            onChange={(event) => {
+              setSelectedStatus(event.target.value as TicketStatus);
+            }}
+          >
+            {ticketStatusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
 
-        {updateStatusMutation.isError ? <p>Failed to update status.</p> : null}
-      </form>
-      <p>Ticket priority: {ticket.priority}</p>
-      <p>Ticket description: {ticket.description}</p>
+          <button type="submit" disabled={updateStatusMutation.isPending}>
+            {updateStatusMutation.isPending ? "Updating..." : "Update status"}
+          </button>
+
+          {updateStatusMutation.isError ? (
+            <p>Failed to update status.</p>
+          ) : null}
+        </form>
+      )}
+      <p>Ticket priority: {loadedTicket.priority}</p>
+      <p>Ticket description: {loadedTicket.description}</p>
 
       <section>
         <h2>Comments</h2>
@@ -190,8 +199,8 @@ export function TicketDetailPage() {
 
         <form onSubmit={handleSubmit(onSubmitComment)}>
           <div>
-            <label>Comment</label>
-            <textarea {...register("message")} />
+            <label htmlFor="comment-message">Comment</label>
+            <textarea id="comment-message" {...register("message")} />
             {errors.message ? <p>{errors.message.message}</p> : null}
           </div>
 
