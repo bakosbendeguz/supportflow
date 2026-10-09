@@ -53,10 +53,14 @@ export function LoginPage() {
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
-            <label className="block text-sm font-medium text-slate-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-slate-700"
+            >
               Email
             </label>
             <input
+              id="email"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
               type="email"
               {...register("email")}
@@ -69,10 +73,14 @@ export function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700"
+            >
               Password
             </label>
             <input
+              id="password"
               className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2"
               type="password"
               {...register("password")}

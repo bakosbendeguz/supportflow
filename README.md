@@ -1,8 +1,53 @@
 # SupportFlow
 
-SupportFlow is a mini helpdesk / ticketing SaaS portfolio project.
+SupportFlow is a full-stack helpdesk / ticketing application built as a portfolio project to demonstrate production-oriented TypeScript development across a React frontend and NestJS backend.
 
-The goal is to build a medior-level fullstack TypeScript application with a separate React frontend and NestJS backend.
+> **Status:** In progress, but fully usable for the implemented core workflow.
+> Authentication, role-based access control, ticket management, comments, dashboard statistics, backend tests, and initial frontend tests are implemented. Playwright E2E coverage and CI are planned next.
+
+## Features
+
+- JWT authentication
+- Role-based access control
+- Ticket creation and management
+- Role-scoped ticket visibility
+- Ticket status workflow
+- Ticket assignment rules
+- Ticket comments
+- Ticket status history
+- Dashboard statistics
+- Search, filtering, pagination, and sorting
+- Swagger / OpenAPI documentation
+- Seeded demo accounts
+- Backend unit tests
+- Frontend component tests
+- Dockerized PostgreSQL development environment
+
+## Roles and Permissions
+
+### Admin
+
+- View and manage all tickets
+- Assign tickets
+- Update ticket priority and status
+- Delete tickets
+
+### Agent
+
+- View assigned and unassigned tickets
+- Assign an unassigned ticket to themselves
+- Update ticket priority and status
+- Comment on accessible tickets
+
+### Customer
+
+- Create tickets
+- View only their own tickets
+- Comment on their own tickets
+- Cannot assign tickets
+- Cannot change ticket priority or status
+
+Customer-created tickets default to `MEDIUM` priority.
 
 ## Tech Stack
 
@@ -13,272 +58,242 @@ The goal is to build a medior-level fullstack TypeScript application with a sepa
 - Vite
 - Tailwind CSS
 - React Router
+- TanStack Query
 - React Hook Form
 - Zod
-- TanStack Query
+- Vitest
+- React Testing Library
 
 ### Backend
 
-- Node.js
 - NestJS
 - TypeScript
 - PostgreSQL
 - Prisma
-- JWT authentication
-- bcrypt password hashing
+- JWT
+- bcrypt
 - Swagger / OpenAPI
+- Jest
 
 ### Tooling
 
 - Docker Compose
-- GitHub Actions
 - npm
 - Git
+- GitHub
 
-## Roles
+## Architecture
 
-- ADMIN
-- AGENT
-- CUSTOMER
-
-## Demo Users
-
-| Role     | Email                | Password    |
-| -------- | -------------------- | ----------- |
-| Admin    | admin@example.com    | admin123    |
-| Agent    | agent@example.com    | agent123    |
-| Customer | customer@example.com | customer123 |
-
-## Planned Features
-
-- Authentication
-- Role-based access control
-- Ticket CRUD
-- Ticket comments
-- Ticket status history
-- Dashboard statistics
-- Search, filtering, pagination
-- Backend tests
-- Frontend tests
-- Playwright happy-path test
-- Docker setup
-- CI pipeline
-
-## Project Structure
-
-```txt
-supportflow/
-├── frontend/
-├── backend/
-├── screenshots/
-├── docker-compose.yml
-├── README.md
-├── .gitignore
-└── .env.example
+```text
+React / Vite
+     |
+     | HTTP + JWT
+     v
+NestJS REST API
+     |
+     | Prisma
+     v
+PostgreSQL
 ```
 
-## Backend Development
+## Demo Accounts
 
-Start PostgreSQL:
+The seed data includes multiple users so role-based ticket visibility can be demonstrated clearly.
+
+| Role       | Email                 | Password    |
+| ---------- | --------------------- | ----------- |
+| Admin      | admin@example.com     | admin123    |
+| Agent      | agent@example.com     | agent123    |
+| Agent 2    | agent2@example.com    | agent123    |
+| Customer   | customer@example.com  | customer123 |
+| Customer 2 | customer2@example.com | customer123 |
+
+The secondary agent and customer accounts make it possible to verify that users see different ticket sets depending on their role and ownership.
+
+## Local Development
+
+### Prerequisites
+
+- Node.js
+- npm
+- Docker Desktop
+
+### 1. Configure environment variables
+
+Use `.env.example` as the template for your local environment configuration.
+
+Do not commit real secrets or local `.env` files.
+
+### 2. Start PostgreSQL
+
+From the project root:
 
 ```powershell
 docker compose up -d
 ```
 
-Start the backend:
+### 3. Start the backend
 
 ```powershell
 cd backend
+npm install
+npx prisma migrate dev
+npx prisma db seed
 npm run start:dev
 ```
 
-Health check:
+The backend runs at:
 
-```txt
-http://localhost:3000/health
+```text
+http://localhost:3000
 ```
 
-Swagger API docs:
+Swagger API documentation:
 
-```txt
+```text
 http://localhost:3000/api
 ```
 
-## Database
+### 4. Start the frontend
 
-Apply migrations:
+In another terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs at:
+
+```text
+http://localhost:5173
+```
+
+## Main API Endpoints
+
+| Method | Endpoint                      | Description                          |
+| ------ | ----------------------------- | ------------------------------------ |
+| POST   | `/auth/login`                 | Authenticate a user                  |
+| GET    | `/auth/me`                    | Get the authenticated user           |
+| GET    | `/tickets`                    | Get role-scoped tickets              |
+| GET    | `/tickets/:id`                | Get ticket details                   |
+| POST   | `/tickets`                    | Create a ticket                      |
+| PATCH  | `/tickets/:id`                | Update ticket fields                 |
+| PATCH  | `/tickets/:id/status`         | Update ticket status                 |
+| DELETE | `/tickets/:id`                | Delete a ticket as Admin             |
+| GET    | `/tickets/:ticketId/comments` | List ticket comments                 |
+| POST   | `/tickets/:ticketId/comments` | Add a ticket comment                 |
+| GET    | `/dashboard/summary`          | Get role-scoped dashboard statistics |
+
+## Testing
+
+### Backend
 
 ```powershell
 cd backend
-npx prisma migrate dev
+npm test
+npm run build
+npm run lint
 ```
 
-Reset the database and run seed data:
+Current backend test coverage includes:
+
+- ticket visibility rules
+- ticket status and assignment business rules
+- comment access control
+- dashboard visibility and aggregation
+
+### Frontend
 
 ```powershell
-cd backend
-npx prisma migrate reset
+cd frontend
+npm test
+npm run build
+npm run lint
 ```
 
-Run seed manually:
+Current frontend tests cover:
 
-```powershell
-cd backend
-npx prisma db seed
-```
+- login validation
+- successful authentication flow
+- protected route behavior
+- ticket query rendering
+- frontend test environment setup
 
-Open Prisma Studio:
+## Access Control
 
-```powershell
-cd backend
-npx prisma studio
-```
+Authorization is enforced on the backend rather than relying on frontend visibility alone.
 
-### Demo Users
+Examples:
 
-| Role     | Email                | Password    |
-| -------- | -------------------- | ----------- |
-| Admin    | admin@example.com    | admin123    |
-| Agent    | agent@example.com    | agent123    |
-| Customer | customer@example.com | customer123 |
+- Customers can access only their own tickets.
+- Customers cannot change ticket status, priority, or assignment.
+- Agents can access tickets assigned to them and unassigned tickets.
+- Agents can assign an unassigned ticket to themselves.
+- Only Admins can delete tickets.
+- Comment access follows the same ticket visibility rules.
+- Dashboard statistics reuse the same role-scoped visibility logic.
 
-## Authentication
+## Seed Data
 
-Demo users:
+The development seed includes:
 
-| Role     | Email                | Password    |
-| -------- | -------------------- | ----------- |
-| Admin    | admin@example.com    | admin123    |
-| Agent    | agent@example.com    | agent123    |
-| Customer | customer@example.com | customer123 |
+- 1 Admin
+- 2 Agents
+- 2 Customers
+- tickets across all major statuses
+- multiple priority levels
+- assigned and unassigned tickets
+- tickets owned by different customers
+- comments from customers and agents
+- ticket status history
 
-Login:
+This makes the role-based access model visible when switching between demo accounts.
 
-```powershell
-cd backend
+## Current Status
 
-$loginResponse = Invoke-RestMethod `
-  -Method Post `
-  -Uri http://localhost:3000/auth/login `
-  -ContentType "application/json" `
-  -Body '{"email":"admin@example.com","password":"admin123"}'
+### Implemented
 
-$token = $loginResponse.accessToken
-```
+- Backend architecture and database model
+- PostgreSQL / Prisma integration
+- Seed data
+- JWT authentication
+- Role-based access control
+- Ticket API
+- Ticket comments
+- Ticket status history
+- Dashboard summary API
+- React authentication flow
+- Protected routes
+- Dashboard UI
+- Ticket list
+- Ticket creation
+- Ticket details
+- Comment creation
+- Status updates
+- Backend unit tests
+- Initial frontend component tests
+- Initial UI polish
 
-Get current user:
+### Next
 
-```powershell
-Invoke-RestMethod `
-  -Method Get `
-  -Uri http://localhost:3000/auth/me `
-  -Headers @{ Authorization = "Bearer $token" }
-```
+- Complete remaining frontend tests
+- Add Playwright end-to-end tests
+- Add GitHub Actions CI
+- Add final screenshots and documentation polish
 
-Admin-only RBAC check:
+## Scope
 
-```powershell
-Invoke-RestMethod `
-  -Method Get `
-  -Uri http://localhost:3000/auth/admin-check `
-  -Headers @{ Authorization = "Bearer $token" }
-```
+SupportFlow intentionally focuses on the core helpdesk workflow.
 
-## Ticket API
+Currently out of scope:
 
-All ticket endpoints require Bearer token authentication.
-
-### Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | /tickets | List tickets with role-based visibility, filters, pagination and sorting |
-| GET | /tickets/:id | Get ticket detail |
-| POST | /tickets | Create a ticket |
-| PATCH | /tickets/:id | Update ticket fields |
-| PATCH | /tickets/:id/status | Update ticket status and write status history |
-| DELETE | /tickets/:id | Delete a ticket as admin |
-
-### Permission Summary
-
-- ADMIN can see and manage all tickets.
-- AGENT can see assigned and unassigned tickets.
-- CUSTOMER can see only their own tickets.
-- CUSTOMER can create tickets, but priority defaults to MEDIUM.
-- CUSTOMER cannot set or update priority.
-- CUSTOMER cannot assign tickets.
-- ADMIN and AGENT can update priority.
-- ADMIN and AGENT can update status.
-- Only ADMIN can delete tickets.
-
-### Ticket list query parameters
-
-| Parameter | Example | Description |
-|---|---|---|
-| search | login | Search title and description |
-| status | OPEN | Filter by status |
-| priority | URGENT | Filter by priority |
-| assigneeId | unassigned | Filter by assignee id or unassigned |
-| includeUnassigned | false | For agents, hide unassigned tickets |
-| page | 1 | Page number |
-| limit | 10 | Page size |
-| sortBy | createdAt | Sort field |
-| sortOrder | desc | Sort direction |
-
-### Example: create customer ticket
-
-```powershell
-$newTicket = Invoke-RestMethod `
-  -Method Post `
-  -Uri http://localhost:3000/tickets `
-  -ContentType "application/json" `
-  -Headers @{ Authorization = "Bearer $customerToken" } `
-  -Body '{"title":"Password reset does not work","description":"I requested a password reset email but I did not receive anything."}'
-```
-
-Customer-created tickets default to MEDIUM priority.
-
-### Example: update status as agent/admin
-
-```powershell
-Invoke-RestMethod `
-  -Method Patch `
-  -Uri "http://localhost:3000/tickets/$ticketId/status" `
-  -ContentType "application/json" `
-  -Headers @{ Authorization = "Bearer $agentToken" } `
-  -Body '{"status":"IN_PROGRESS"}'
-```
-
-### Comments and Dashboard API
-
-Implemented:
-- GET /tickets/:ticketId/comments
-- POST /tickets/:ticketId/comments
-- GET /dashboard/summary
-
-Comments:
-- Authenticated users can list and create comments only on tickets they are allowed to access.
-- Comment responses include safe author fields only: id, email, name, and role.
-- passwordHash is never returned.
-
-Dashboard:
-- Dashboard statistics reuse the same ticket visibility rules as the Ticket API.
-- ADMIN sees all ticket counts.
-- AGENT sees assigned and unassigned ticket counts.
-- CUSTOMER sees only their own ticket counts.
-
-Cleanup:
-- Extracted TicketAccessService so ticket visibility rules are shared by tickets, comments, and dashboard.
-- Removed duplicated comment author select logic with safeAuthorSelect.
-- Cleaned Swagger descriptions.
-- Standardized imports.
-- Fixed lint warnings.
-
-Verification:
-- npm run lint passed.
-- npm run build passed.
-- Authenticated comment listing works.
-- Authenticated comment creation works.
-- Empty comment validation returns 400.
-- Authenticated dashboard summary works.
-- Missing-token dashboard request returns 401.
+- realtime chat
+- email delivery
+- payments
+- file uploads
+- multi-tenant billing
+- Redis
+- Kubernetes
+- internationalization

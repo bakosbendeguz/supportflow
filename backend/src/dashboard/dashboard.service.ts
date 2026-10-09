@@ -29,14 +29,10 @@ export class DashboardService {
   async getSummary(user: AuthenticatedUser) {
     const visibilityWhere = this.ticketAccessService.buildVisibilityWhere(user);
 
-    // TODO 1:
-    // Count all visible tickets.
     const totalTickets = await this.prisma.ticket.count({
       where: visibilityWhere,
     });
 
-    // TODO 2:
-    // Count visible tickets for each status.
     const statusCounts = await Promise.all(
       ticketStatuses.map(async (status) => {
         const count = await this.prisma.ticket.count({
@@ -54,8 +50,6 @@ export class DashboardService {
       number
     >;
 
-    // TODO 3:
-    // Count visible tickets for each priority.
     const priorityCounts = await Promise.all(
       ticketPriorities.map(async (priority) => {
         const count = await this.prisma.ticket.count({
@@ -72,16 +66,12 @@ export class DashboardService {
       TicketPriority,
       number
     >;
-    // TODO 4:
-    // Count visible unassigned tickets.
+
     const unassignedTickets = await this.prisma.ticket.count({
       where: {
         AND: [visibilityWhere, { assigneeId: null }],
       },
     });
-
-    // TODO 5:
-    // Return the dashboard object.
 
     return {
       totalTickets,
