@@ -341,7 +341,7 @@ export class TicketsService {
     });
 
     if (!ticket) {
-      throw new NotFoundException('Ticket bot found.');
+      throw new NotFoundException('Ticket not found.');
     }
 
     return ticket;

@@ -302,6 +302,35 @@ export function TicketDetailPage() {
             </dl>
           </div>
 
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">
+              Status history
+            </h2>
+
+            <div className="mt-4 space-y-4">
+              {ticket.statusHistory.map((history) => (
+                <div
+                  key={history.id}
+                  className="border-l-2 border-slate-200 pl-4"
+                >
+                  <p className="text-sm font-medium text-slate-900">
+                    {history.oldStatus === null
+                      ? history.newStatus.replaceAll("_", " ")
+                      : `${history.oldStatus.replaceAll("_", " ")} → ${history.newStatus.replaceAll("_", " ")}`}
+                  </p>
+
+                  <p className="mt-1 text-sm text-slate-600">
+                    By {history.changedBy.name}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    {new Date(history.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {canUpdateStatus ? (
             <form
               onSubmit={onSubmitStatus}

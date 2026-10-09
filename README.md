@@ -96,6 +96,24 @@ NestJS REST API
 PostgreSQL
 ```
 
+## Screenshots
+
+### Dashboard
+
+![SupportFlow dashboard](screenshots/dashboard.png)
+
+### Ticket List
+
+![SupportFlow ticket list](screenshots/tickets.png)
+
+### Ticket Details
+
+![SupportFlow ticket details](screenshots/ticket-detail.png)
+
+### Create Ticket
+
+![SupportFlow create ticket form](screenshots/create-ticket.png)
+
 ## Demo Accounts
 
 The seed data includes multiple users so role-based ticket visibility can be demonstrated clearly.
