@@ -130,6 +130,8 @@ The secondary agent and customer accounts make it possible to verify that users 
 
 ## Local Development
 
+For a full step-by-step installation guide, see [SETUP.md](SETUP.md).
+
 ### Prerequisites
 
 - Node.js
