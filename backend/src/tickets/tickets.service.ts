@@ -235,11 +235,15 @@ export class TicketsService {
       return existingTicket;
     }
 
+    const shouldAutoAssign =
+      user.role === Role.AGENT && existingTicket.assigneeId === null;
+
     await this.prisma.$transaction([
       this.prisma.ticket.update({
         where: { id },
         data: {
           status: updateTicketStatusDto.status,
+          ...(shouldAutoAssign ? { assigneeId: user.id } : {}),
         },
       }),
       this.prisma.ticketStatusHistory.create({

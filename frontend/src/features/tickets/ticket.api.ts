@@ -52,6 +52,27 @@ export async function createTicket(
   return data;
 }
 
+export async function updateTicketAssignee(
+  ticketId: string,
+  assigneeId: string | null,
+): Promise<TicketDetail> {
+  const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ assigneeId }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update ticket assignment.");
+  }
+
+  const data = (await response.json()) as TicketDetail;
+  return data;
+}
+
 export async function updateTicketStatus(
   ticketId: string,
   status: TicketStatus,

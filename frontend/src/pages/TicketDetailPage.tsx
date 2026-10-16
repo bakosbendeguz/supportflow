@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import {
   getTicketById,
   updateTicketStatus,
+  updateTicketAssignee,
 } from "../features/tickets/ticket.api";
 import { getTicketComments } from "../features/comments/comment.api";
 import { useForm } from "react-hook-form";
@@ -15,6 +16,7 @@ import { createTicketComment } from "../features/comments/comment.api";
 import type { TicketStatus } from "../features/tickets/ticket.types";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../features/auth/auth.context";
+import { getAgents } from "../features/users/user.api";
 
 const ticketStatusOptions: TicketStatus[] = [
   "OPEN",
@@ -103,13 +105,41 @@ export function TicketDetailPage() {
     },
   });
 
-  if (!ticketId) {
-    return (
-      <section>
-        <p>Missing ticket id.</p>
-      </section>
-    );
-  }
+  const assignToMeMutation = useMutation({
+    mutationFn: () => {
+      if (!ticketId || !user) {
+        throw new Error("Cannot assign ticket.");
+      }
+
+      return updateTicketAssignee(ticketId, user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+    },
+  });
+
+  const agentsQuery = useQuery({
+    queryKey: ["agents"],
+    queryFn: getAgents,
+    enabled: user?.role === "ADMIN",
+  });
+
+  const updateAssigneeMutation = useMutation({
+    mutationFn: (assigneeId: string | null) => {
+      if (!ticketId) {
+        throw new Error("Cannot find ticket.");
+      }
+
+      return updateTicketAssignee(ticketId, assigneeId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ticket", ticketId] });
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+    },
+  });
 
   if (ticketQuery.isLoading) {
     return <section>Loading ticket...</section>;
@@ -127,6 +157,11 @@ export function TicketDetailPage() {
   }
 
   const loadedTicket = ticket;
+
+  const agents = agentsQuery.data ?? [];
+
+  const canAssignToSelf =
+    user?.role === "AGENT" && loadedTicket.assignee === null;
 
   function onSubmitStatus(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -299,6 +334,69 @@ export function TicketDetailPage() {
                   {loadedTicket.assignee?.name ?? "Unassigned"}
                 </dd>
               </div>
+
+              {user?.role === "ADMIN" ? (
+                <div className="mt-4">
+                  <label
+                    htmlFor="ticket-assignee"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Assign agent
+                  </label>
+
+                  <select
+                    id="ticket-assignee"
+                    value={loadedTicket.assignee?.id ?? ""}
+                    disabled={
+                      agentsQuery.isLoading || updateAssigneeMutation.isPending
+                    }
+                    onChange={(event) => {
+                      const assigneeId = event.target.value || null;
+                      updateAssigneeMutation.mutate(assigneeId);
+                    }}
+                    className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                  >
+                    <option value="">Unassigned</option>
+
+                    {agents.map((agent) => (
+                      <option key={agent.id} value={agent.id}>
+                        {agent.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {agentsQuery.isError ? (
+                    <p className="mt-2 text-sm text-red-600">
+                      Failed to load agents.
+                    </p>
+                  ) : null}
+
+                  {updateAssigneeMutation.isError ? (
+                    <p className="mt-2 text-sm text-red-600">
+                      Failed to update assignment.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {canAssignToSelf ? (
+                <button
+                  type="button"
+                  onClick={() => assignToMeMutation.mutate()}
+                  disabled={assignToMeMutation.isPending}
+                  className="mt-4 w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {assignToMeMutation.isPending
+                    ? "Assigning..."
+                    : "Assign to me"}
+                </button>
+              ) : null}
+
+              {assignToMeMutation.isError ? (
+                <p className="mt-2 text-sm text-red-600">
+                  Failed to assign ticket.
+                </p>
+              ) : null}
             </dl>
           </div>
 

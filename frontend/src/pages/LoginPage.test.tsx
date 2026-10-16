@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
@@ -52,6 +52,25 @@ describe("LoginPage", () => {
     expect(login).not.toHaveBeenCalled();
   });
 
+  it("shows the API error when login fails", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(login).mockRejectedValue(new Error("Invalid credentials."));
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.type(screen.getByLabelText("Email"), "customer@example.com");
+    await user.type(screen.getByLabelText("Password"), "wrong-password");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(await screen.findByText("Invalid credentials.")).toBeInTheDocument();
+    expect(setAuthFromLoginMock).not.toHaveBeenCalled();
+  });
+
   it("submits valid credentials, stores auth data, and navigates to the dashboard", async () => {
     const user = userEvent.setup();
 
@@ -62,8 +81,8 @@ describe("LoginPage", () => {
         email: "customer@example.com",
         name: "Customer User",
         role: "CUSTOMER" as const,
-        createdAt: "2026-01-01T00:00:00.00Z",
-        updatedAt: "2026-01-01T00:00:00.00Z",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
       },
     };
 
@@ -79,9 +98,7 @@ describe("LoginPage", () => {
     );
 
     await user.type(screen.getByLabelText("Email"), "customer@example.com");
-
     await user.type(screen.getByLabelText("Password"), "customer123");
-
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(
@@ -96,5 +113,37 @@ describe("LoginPage", () => {
     });
 
     expect(setAuthFromLoginMock).toHaveBeenCalledWith(loginResponse);
+  });
+
+  it("redirects an already authenticated user to the dashboard", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      token: "fake-token",
+      user: {
+        id: "agent-1",
+        email: "agent@example.com",
+        name: "Agent User",
+        role: "AGENT",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+      isAuthenticated: true,
+      setAuthFromLogin: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<h1>Dashboard test route</h1>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Dashboard test route" }),
+    ).toBeInTheDocument();
+
+    expect(login).not.toHaveBeenCalled();
   });
 });
